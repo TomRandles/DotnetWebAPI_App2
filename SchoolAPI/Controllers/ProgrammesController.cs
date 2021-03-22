@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using School.Data.DataAccess.Repositories;
 using School.Data.DataAccess.Repositories.Generic;
 using School.Domain.Models;
@@ -53,7 +54,8 @@ namespace SchoolAPI.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         // Programme object deserialized from json
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProgrammeAsync(string id, ProgrammeDto programme)
+        public async Task<IActionResult> PutProgrammeAsync(string id, 
+                                                           [FromBody] ProgrammeDto programme)
         {
             if (id != programme.ProgrammeId)
             {
@@ -62,7 +64,59 @@ namespace SchoolAPI.Controllers
 
             try
             {
-                var result = _programmeRepository.Update(programme);
+                var programmeFromDb = await _programmeRepository.FindByIdAsync(id);
+                if (programmeFromDb == null)
+                    return NotFound($"Programme {id} not found");
+
+                // Map all properties except Id
+                programmeFromDb.Name = programme.Name;
+                programmeFromDb.Description = programme.Description;
+
+                var result = _programmeRepository.Update(programmeFromDb);
+                if (result == null)
+                    return NotFound();
+                await _programmeRepository.SaveChangesAsync();
+            }
+            catch (DataAccessException)
+            {
+                return BadRequest($"Update of programme {id} failed.");
+            }
+            return NoContent();
+        }
+
+        // PATCH: api/programmes/Java06
+        // Programme object deserialized from json
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PartialUpdateProgrammeAsync(string id,
+            [FromBody] JsonPatchDocument<ProgrammeDto> patchProgramme)
+        {
+            try
+            {
+                var programmeFromDb = await _programmeRepository.FindByIdAsync(id);
+                if (programmeFromDb == null)
+                    return NotFound($"Programme {id} not found");
+
+                var programmeToPatch = new ProgrammeDto
+                {
+                    Name = programmeFromDb.Name,
+                    Description = programmeFromDb.Description
+                };
+
+                patchProgramme.ApplyTo(programmeToPatch, ModelState);
+
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                if (! TryValidateModel(patchProgramme))
+                {
+                    return BadRequest(ModelState);
+                }
+                
+                // Map all properties except Id
+                programmeFromDb.Name = programmeToPatch.Name;
+                programmeFromDb.Description = programmeToPatch.Description;
+
+                var result = _programmeRepository.Update(programmeFromDb);
                 if (result == null)
                     return NotFound();
                 await _programmeRepository.SaveChangesAsync();
@@ -77,8 +131,19 @@ namespace SchoolAPI.Controllers
         // POST: api/Programmes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ProgrammeDto>> PostProgrammeAsync(ProgrammeDto programme)
+        public async Task<ActionResult<ProgrammeDto>> PostProgrammeAsync([FromBody] ProgrammeDto programme)
         {
+            if (programme.Description == programme.Name)
+            {
+                // Business rule - Name and Description must be different
+                ModelState.AddModelError(programme.Description, 
+                    $"Name: {programme.Name} and description: {programme.Description} should be different.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var addedProgramme = await _programmeRepository.AddAsync(programme);
@@ -94,16 +159,21 @@ namespace SchoolAPI.Controllers
 
         // DELETE: api/programmes/S355505
         [HttpDelete("{id}")]
-        public async Task DeleteProgrammeAsync(string id)
+        public async Task<IActionResult> DeleteProgrammeAsync(string id)
         {
             try
             {
+                var programmeFromDb = await _programmeRepository.FindByIdAsync(id);
+                if (programmeFromDb == null)
+                    return NotFound($"Programme {id} not found");
+
                 await _programmeRepository.DeleteProgrammeAsync(id);
                 await _programmeRepository.SaveChangesAsync();
+                return NoContent();
             }
             catch (DataAccessException)
             {
-                BadRequest($"Delete of {id} failed");
+                return BadRequest($"Delete of {id} failed");
             }
         }
     }

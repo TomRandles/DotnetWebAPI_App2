@@ -5,8 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Serialization;
 using School.Data.DataAccess.Repositories;
 using School.Data.Database;
+using System.Text.Json.Serialization;
 
 namespace SchoolAPI
 {
@@ -22,12 +24,27 @@ namespace SchoolAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
-            services.AddControllers()
-                // Setting required to include child objects in json output
+
+            services.AddControllers(options =>
+                { 
+                    options.RespectBrowserAcceptHeader = true; // false by default
+                })
+                // Add XML formatter support
+                .AddXmlSerializerFormatters()
                 .AddNewtonsoftJson(options =>
-                    options.SerializerSettings.ReferenceLoopHandling = 
-                        Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+                {
+                    // Setting required to include child objects in json output
+                    options.SerializerSettings.ReferenceLoopHandling =
+                        Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    // Use the default property (Pascal) casing
+                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                })
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
 
             services.AddSwaggerGen(c =>
             {
@@ -42,7 +59,7 @@ namespace SchoolAPI
             );
             #endregion
 
-            services.AddTransient<IProgrammeRepository, ProgrammeRepository>(); 
+            services.AddTransient<IProgrammeRepository, ProgrammeRepository>();
             services.AddTransient<IStudentRepository, StudentRepository>();
         }
 
