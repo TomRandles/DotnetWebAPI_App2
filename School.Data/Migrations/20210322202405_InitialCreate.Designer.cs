@@ -9,7 +9,7 @@ using School.Data.Database;
 namespace School.Data.Migrations
 {
     [DbContext(typeof(SchoolDbContext))]
-    [Migration("20210320140949_InitialCreate")]
+    [Migration("20210322202405_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,34 +20,41 @@ namespace School.Data.Migrations
                 .HasAnnotation("ProductVersion", "5.0.4")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("School.Domain.Models.ProgrammeDto", b =>
+            modelBuilder.Entity("School.Domain.Entities.Programme", b =>
                 {
                     b.Property<string>("ProgrammeId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("ProgrammeId");
 
                     b.ToTable("Programmes");
                 });
 
-            modelBuilder.Entity("School.Domain.Models.StudentDto", b =>
+            modelBuilder.Entity("School.Domain.Entities.Student", b =>
                 {
                     b.Property<string>("StudentId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ProgrammeId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("StudentId");
@@ -57,16 +64,18 @@ namespace School.Data.Migrations
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("School.Domain.Models.StudentDto", b =>
+            modelBuilder.Entity("School.Domain.Entities.Student", b =>
                 {
-                    b.HasOne("School.Domain.Models.ProgrammeDto", "Programme")
+                    b.HasOne("School.Domain.Entities.Programme", "Programme")
                         .WithMany("Students")
-                        .HasForeignKey("ProgrammeId");
+                        .HasForeignKey("ProgrammeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Programme");
                 });
 
-            modelBuilder.Entity("School.Domain.Models.ProgrammeDto", b =>
+            modelBuilder.Entity("School.Domain.Entities.Programme", b =>
                 {
                     b.Navigation("Students");
                 });

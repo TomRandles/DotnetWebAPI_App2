@@ -9,6 +9,8 @@ using Newtonsoft.Json.Serialization;
 using School.Data.DataAccess.Repositories;
 using School.Data.Database;
 using System.Text.Json.Serialization;
+using Serilog;
+using System;
 
 namespace SchoolAPI
 {
@@ -30,7 +32,7 @@ namespace SchoolAPI
                     options.RespectBrowserAcceptHeader = true; // false by default
                 })
                 // Add XML formatter support
-                .AddXmlSerializerFormatters()
+                // .AddXmlSerializerFormatters()
                 .AddNewtonsoftJson(options =>
                 {
                     // Setting required to include child objects in json output
@@ -61,6 +63,9 @@ namespace SchoolAPI
 
             services.AddTransient<IProgrammeRepository, ProgrammeRepository>();
             services.AddTransient<IStudentRepository, StudentRepository>();
+
+            // Assemblies scanned for profiles of mapping configurations
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -80,6 +85,9 @@ namespace SchoolAPI
             app.UseStatusCodePages();
 
             app.UseHttpsRedirection();
+
+            // All requests details will be logged
+            app.UseSerilogRequestLogging();
 
             app.UseRouting();
 

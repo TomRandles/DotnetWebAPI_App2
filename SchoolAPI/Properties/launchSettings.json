@@ -14,7 +14,8 @@
       "launchBrowser": true,
       "launchUrl": "api/students",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "DbConnection": "Data Source=(localdb)\\MSSQLLocalDB;Initial, Catalog=NewSchoolDb;Integrated Security=True"
       }
     },
     "SchoolAPI": {

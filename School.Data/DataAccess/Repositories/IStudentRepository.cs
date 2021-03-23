@@ -1,14 +1,14 @@
 ﻿using School.Data.DataAccess.Repositories.Generic;
-using School.Domain.Models;
+using School.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace School.Data.DataAccess.Repositories
 {
-    public interface IStudentRepository : IRepository<StudentDto> 
+    public interface IStudentRepository : IRepository<Student> 
     {
-        Task<IEnumerable<StudentDto>> AllAsyncIncludeProgramme();
-        Task<StudentDto> FindByIdIncludeProgrammeAsync(string Id);
+        Task<IEnumerable<Student>> AllAsyncIncludeProgramme();
+        Task<Student> FindByIdIncludeProgrammeAsync(string Id);
         Task DeleteStudentAsync(string Id);
     }
 }

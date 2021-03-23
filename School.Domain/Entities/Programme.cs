@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace School.Domain.Models
+namespace School.Domain.Entities
 {
-    public class ProgrammeDto
+    public class Programme
     {
-        [Required(ErrorMessage = "Programme ID is required.")] 
+        [Key]
+        [Required(ErrorMessage = "Programme ID is required.")]
         public string ProgrammeId { get; set; }
 
-        [Required(ErrorMessage = "Programme name is required.")]
+        [Required(ErrorMessage ="Name is required.")]
         [MaxLength(20)]
         public string Name { get; set; }
         
         [MaxLength(200)]
         public string Description { get; set; }
+        public virtual ICollection<Student> Students { get; set; }
     }
 }

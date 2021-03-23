@@ -4,10 +4,14 @@ using School.Data.Database;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using School.Domain.Entities;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System;
 
 namespace School.Data.DataAccess.Repositories
 {
-    public class ProgrammeRepository : GenericRepository<ProgrammeDto>, IProgrammeRepository 
+    public class ProgrammeRepository : GenericRepository<Programme>, IProgrammeRepository 
     {
         public ProgrammeRepository(SchoolDbContext dbContext) : base (dbContext)
         { 
@@ -21,7 +25,7 @@ namespace School.Data.DataAccess.Repositories
                 throw new DataAccessException($"DeleteProgrammeAsync: programme: {Id} not found");
         }
 
-        public async Task<ProgrammeDto> GetProgrammeWithStudents(string programmeID)
+        public async Task<Programme> GetProgrammeWithStudents(string programmeID)
         {
             var programme = await dbContext.Programmes.Where(p => p.ProgrammeId == programmeID)
                                            .Include(s => s.Students).FirstOrDefaultAsync();

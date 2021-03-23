@@ -4,23 +4,24 @@ using Microsoft.EntityFrameworkCore;
 using School.Domain.Models;
 using School.Data.Database;
 using School.Data.DataAccess.Repositories.Generic;
+using School.Domain.Entities;
 
 namespace School.Data.DataAccess.Repositories
 {
-    public class StudentRepository : GenericRepository<StudentDto>, IStudentRepository
+    public class StudentRepository : GenericRepository<Student>, IStudentRepository
     {
         public StudentRepository(SchoolDbContext dbContext) : base(dbContext)
         {
         }
 
-        public async Task<StudentDto> FindByIdIncludeProgrammeAsync(string Id)
+        public async Task<Student> FindByIdIncludeProgrammeAsync(string Id)
         {
             return await dbContext.Students
                                   .Include(m => m.Programme)
                                   .FirstOrDefaultAsync(m => m.StudentId == Id);
         }
 
-        public async Task<IEnumerable<StudentDto>> AllAsyncIncludeProgramme()
+        public async Task<IEnumerable<Student>> AllAsyncIncludeProgramme()
         {
             return await base.dbContext
                              .Students
